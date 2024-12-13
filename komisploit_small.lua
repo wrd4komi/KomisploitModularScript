@@ -1,129 +1,118 @@
--- Main Script: Unified Tool with Vape Integration and Whitelist
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-local LocalPlayer = Players.LocalPlayer
+-- [[ Universal Script Loader - Fully Compatible with JJSploit ]] --
+print("Script Loading Started")
 
--- Create Tool
-local Tool = Instance.new("Tool")
-Tool.Name = "Komisploit Tool"
-Tool.RequiresHandle = false
-Tool.CanBeDropped = false
-Tool.Parent = LocalPlayer.Backpack
-
--- Helper Functions
-local function createGui()
-    local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-    ScreenGui.Name = "KomisploitGui"
-
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0.5, 0, 0.5, 0)
-    Frame.Position = UDim2.new(0.25, 0, 0.25, 0)
-    Frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-    Frame.BorderSizePixel = 2
-    Frame.Parent = ScreenGui
-
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0.6, 0, 0.2, 0)
-    Button.Position = UDim2.new(0.2, 0, 0.4, 0)
-    Button.BackgroundColor3 = Color3.new(0.5, 0.8, 0.5)
-    Button.Text = "Activate KomiSploit"
-    Button.Font = Enum.Font.SourceSans
-    Button.TextSize = 24
-    Button.Parent = Frame
-
-    return ScreenGui, Button
+-- Compatibility Layer for Basic Executors
+local isfile = isfile or function() return false end
+local readfile = readfile or function() return "" end
+local writefile = writefile or function() end
+local makefolder = makefolder or function() end
+local delfile = delfile or function() end
+local setidentity = setidentity or function() end
+local getidentity = getidentity or function() return 8 end
+local httpRequest = syn and syn.request or http_request or (fluxus and fluxus.request) or function(req)
+    return {Success = true, Body = game:HttpGet(req.Url)}
 end
 
-local function displayErrorPopup(text, func)
-    local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
-    local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
-    local oldidentity = getidentity()
-    setidentity(8)
+-- Function to Check HTTP Support
+if not httpRequest then
+    error("Your executor does not support HTTP requests. Please use an executor like Synapse X, KRNL, or Fluxus.")
+end
 
-    local ErrorPrompt = getrenv().require(CoreGui.RobloxGui.Modules.ErrorPrompt)
+-- Function to Display Errors for Advanced Executors
+local function displayErrorPopup(text)
+    if not getrenv or not getrenv().require then
+        print("[ERROR] " .. text) -- Fallback for basic executors like JJSploit
+        return
+    end
+
+    local oldidentity = getidentity()
+    setidentity(8) -- Set thread identity for GUI creation
+    local ErrorPrompt = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.ErrorPrompt)
     local prompt = ErrorPrompt.new("Default")
     prompt._hideErrorCode = true
-    local gui = Instance.new("ScreenGui", CoreGui)
-    prompt:setErrorTitle("Komisploit Error")
-    prompt:updateButtons({{
-        Text = "OK",
-        Callback = function()
-            prompt:_close()
-            if func then func() end
-        end,
-        Primary = true
-    }}, "Default")
+    local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+    prompt:setErrorTitle("Script Error")
+    prompt:updateButtons({
+        {
+            Text = "OK",
+            Callback = function()
+                prompt:_close()
+            end,
+            Primary = true
+        }
+    }, 'Default')
     prompt:setParent(gui)
     prompt:_open(text)
-
-    setidentity(oldidentity)
+    setidentity(oldidentity) -- Restore thread identity
 end
 
-local function vapeGithubRequest(scripturl)
-    local isfile = isfile or function(file)
-        local suc, res = pcall(function() return readfile(file) end)
-        return suc and res ~= nil
+-- Function to Fetch Scripts
+local function fetchScript(url)
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if success then
+        return result
+    else
+        displayErrorPopup("Failed to fetch script from: " .. url)
+        return "return -- Failed to fetch script"
     end
-    local writefile = writefile or function(file, content) end
+end
 
-    if not isfile("vape/" .. scripturl) then
-        task.delay(15, function()
-            displayErrorPopup("The connection to GitHub is taking a while. Please be patient.")
-        end)
+-- Load Dynamic Modules
+local function loadModule(url)
+    local scriptContent = fetchScript(url)
+    local success, err = pcall(function()
+        loadstring(scriptContent)()
+    end)
+    if not success then
+        displayErrorPopup("Error executing module from: " .. url .. " | Error: " .. err)
+    end
+end
 
-        local res = "return --File loaded locally"
-        if scripturl:find(".lua") then
-            res = "--Cache watermark.\n" .. res
+-- Module URLs
+local modules = {
+    AimAssist = "https://example.com/aim_assist.lua", -- Replace with the actual URLs
+    KillAura = "https://example.com/kill_aura.lua",
+    MainLogic = "https://example.com/main_logic.lua"
+}
+
+-- Load Each Module
+for name, url in pairs(modules) do
+    print("Loading Module: " .. name)
+    loadModule(url)
+end
+
+-- Example Modular Functionality (Aim Assist)
+local function initializeAimAssist()
+    print("Initializing Aim Assist...")
+    -- Add your aim assist logic here
+    game:GetService("RunService").RenderStepped:Connect(function()
+        -- Dummy logic for aim assist
+        local player = game.Players.LocalPlayer
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            print("Aim Assist Active for: " .. player.Name)
         end
-        writefile("vape/" .. scripturl, res)
-    end
-    return readfile("vape/" .. scripturl)
+    end)
 end
 
--- Tool GUI and Functionality
-local ScreenGui, Button = createGui()
-
-Button.MouseButton1Click:Connect(function()
-    print("Komisploit Activated!")
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
-    Button.Text = "Activated!"
-    wait(2)
-    Button.Text = "Activate KomiSploit"
-end)
-
-Tool.Activated:Connect(function()
-    print("Tool Activated! Toggling GUI...")
-    ScreenGui.Enabled = not ScreenGui.Enabled
-end)
-
--- Whitelist and Vape Integration
-local function loadVapeScripts()
-    print("Whitelist Start")
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/bumt1/vape/main/vapelitescripttakedown"))()
-
-    if not shared.VapeDeveloper then
-        local commit = "main"
-        if isfolder("vape") then
-            if not isfile("vape/commithash.txt") then
-                writefile("vape/commithash.txt", commit)
+-- Example Modular Functionality (Kill Aura)
+local function initializeKillAura()
+    print("Initializing Kill Aura...")
+    -- Add your kill aura logic here
+    game:GetService("RunService").RenderStepped:Connect(function()
+        -- Dummy logic for kill aura
+        for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+            if enemy:FindFirstChild("Humanoid") then
+                enemy.Humanoid:TakeDamage(10)
             end
-        else
-            makefolder("vape")
-            writefile("vape/commithash.txt", commit)
         end
-    end
-
-    return loadstring(vapeGithubRequest("MainScript.lua"))()
+    end)
 end
 
--- Run the Whitelist/Vape Script
-local success, err = pcall(loadVapeScripts)
-if not success then
-    displayErrorPopup("An error occurred while loading Vape scripts: " .. tostring(err))
-end
+-- Initialize Modules Dynamically
+initializeAimAssist()
+initializeKillAura()
 
--- Cleanup when Player's Character is Removed
-LocalPlayer.CharacterRemoving:Connect(function()
-    ScreenGui:Destroy()
-end)
-
+-- Final Script Message
+print("Script Loaded Successfully!")
