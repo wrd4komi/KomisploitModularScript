@@ -1,29 +1,62 @@
--- [[ Basic JJSploit-Compatible Script for BedWars ]] --
+-- Complex Script for BedWars in JJSploit
 
-print("JJSploit-Compatible Script Loaded")
+-- Debug Information
+print("Complex Script Loaded - BedWars Only")
 
--- Check if in BedWars Game
-if not game.PlaceId == 6872265039 then
-    print("This script is designed for BedWars only!")
+-- Ensure we're in BedWars
+if game.PlaceId ~= 6872265039 then
+    print("Not in BedWars! Exiting...")
     return
 end
 
--- Basic Kill Aura
+-- Basic helper functions to check for the player and parts
+local function getPlayer()
+    return game.Players.LocalPlayer
+end
+
+local function isPlayerValid(player)
+    return player and player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getDistanceBetween(player1, player2)
+    return (player1.HumanoidRootPart.Position - player2.HumanoidRootPart.Position).magnitude
+end
+
+-- Modular Aim Assist
+local function aimAssist(target)
+    local player = getPlayer()
+    if isPlayerValid(player) and isPlayerValid(target) then
+        local distance = getDistanceBetween(player.Character, target.Character)
+        if distance < 15 then -- Adjust the range for aim assist
+            print("Aiming at:", target.Name)
+            -- You can add your aiming logic here, for example:
+            -- Aim at the enemy's head (not implemented for JJSploit)
+        end
+    end
+end
+
+-- Modular Kill Aura
 local function activateKillAura()
     print("Kill Aura Activated")
-
-    -- Connect a loop to damage nearby enemies
+    local player = getPlayer()
     while wait(0.5) do
-        local player = game.Players.LocalPlayer
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if isPlayerValid(player) then
             for _, target in pairs(game.Players:GetPlayers()) do
-                if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).magnitude
-                    if distance < 15 then -- Attack range
-                        local args = {
-                            [1] = target.Character
-                        }
-                        game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged:FindFirstChild("DamageEvent"):FireServer(unpack(args))
+                if target ~= player and isPlayerValid(target) then
+                    local distance = getDistanceBetween(player.Character, target.Character)
+                    if distance < 15 then
+                        print("Attacking:", target.Name)
+
+                        -- Try to Fire Damage Event (in case it works)
+                        local args = { target.Character }
+                        local eventPath = game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts")
+                            and game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged:FindFirstChild("DamageEvent")
+                        
+                        if eventPath then
+                            eventPath:FireServer(unpack(args))
+                        else
+                            print("Damage Event Path not found")
+                        end
                     end
                 end
             end
@@ -31,27 +64,20 @@ local function activateKillAura()
     end
 end
 
--- Basic Aim Assist
-local function activateAimAssist()
-    print("Aim Assist Activated")
-    game:GetService("RunService").RenderStepped:Connect(function()
-        local player = game.Players.LocalPlayer
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            for _, target in pairs(game.Players:GetPlayers()) do
-                if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).magnitude
-                    if distance < 50 then -- Aim assist range
-                        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position, target.Character.HumanoidRootPart.Position)
-                    end
-                end
-            end
-        end
-    end)
+-- Main Function to control the script
+local function startScript()
+    -- Initialize
+    print("Starting Complex Script...")
+
+    -- Ensure Kill Aura is activated
+    spawn(activateKillAura)
+    
+    -- Other Complex Features (e.g., Auto-Equip, Teleport, etc.)
+    -- You can add additional features here for more complexity if desired
+
 end
 
--- Activate Kill Aura and Aim Assist
-spawn(activateKillAura)
-spawn(activateAimAssist)
+-- Start the script
+startScript()
 
-print("Script Running - Enjoy!")
-
+print("Complex Script Running")
